@@ -1,4 +1,4 @@
-aiogram==3.7.0
-aiohttp==3.9.5
-aiosqlite==0.20.0
-python-dotenv==1.0.1
+# Flexible pins — compatible with Python 3.11, 3.12, 3.13, 3.14
+aiogram>=3.13.0
+aiohttp>=3.10.0
+python-dotenv>=1.0.1

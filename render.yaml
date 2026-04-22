@@ -1,12 +1,5 @@
-# render.yaml — GameArena Blueprint (все 3 сервиса на Render)
-# ─────────────────────────────────────────────────────────────
-# Деплой одной кнопкой:
-#   1. Загрузить папку на GitHub (публичный или приватный репо)
-#   2. render.com → New → Blueprint → выбрать репо
-#   3. Render сам найдёт этот файл и создаст 3 сервиса
-#   4. Вписать секреты: BOT_TOKEN (обязательно)
-#   5. Click "Apply" — всё задеплоится автоматически
-# ─────────────────────────────────────────────────────────────
+# render.yaml — GameArena Blueprint
+# Деплой: render.com → New → Blueprint → выбрать репо → вписать BOT_TOKEN → Apply
 
 services:
 
@@ -25,14 +18,12 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # MINI_APP_URL заполнится автоматически из URL фронтенда (см. ниже)
       - key: MINI_APP_URL
         fromService:
           name: gamearena-frontend
           type: web
           property: host
           envVarKey: MINI_APP_URL
-      # PORT инжектируется Render автоматически — НЕ указывать вручную
 
   # ══════════════════════════════════════════════════════════
   # 2. FRONTEND — React + Vite (Static Site)
@@ -45,13 +36,11 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    # SPA: все пути → index.html
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
-      # Заполняются автоматически из URL бэкенда
       - key: VITE_API_URL
         fromService:
           name: gamearena-backend
@@ -66,7 +55,7 @@ services:
           envVarKey: VITE_SOCKET_URL
 
   # ══════════════════════════════════════════════════════════
-  # 3. BOT — Python (Background Worker, никогда не засыпает)
+  # 3. BOT — Python (Background Worker)
   # ══════════════════════════════════════════════════════════
   - type: worker
     name: gamearena-bot
@@ -77,10 +66,10 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
     envVars:
-      # ОБЯЗАТЕЛЬНО вписать вручную в Render Dashboard:
+      # ⬇ ЕДИНСТВЕННАЯ переменная которую нужно вписать вручную:
       - key: BOT_TOKEN
         sync: false
-      # Заполняются автоматически:
+      # Всё остальное заполняется автоматически:
       - key: MINI_APP_URL
         fromService:
           name: gamearena-frontend
@@ -95,3 +84,6 @@ services:
           envVarKey: API_URL
       - key: KEEPALIVE_INTERVAL
         value: "600"
+      # Явно указываем Python 3.11 тремя способами для надёжности:
+      - key: PYTHON_VERSION
+        value: "3.11"
