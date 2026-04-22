@@ -1,5 +1,8 @@
 # render.yaml — GameArena Blueprint
-# Деплой: render.com → New → Blueprint → выбрать репо → вписать BOT_TOKEN → Apply
+# ─────────────────────────────────────────────────────────────────────────────
+# ВАЖНО: после деплоя вручную прописать MINI_APP_URL во всех сервисах
+# (URL фронтенда вида https://gamearena-frontend.onrender.com)
+# ─────────────────────────────────────────────────────────────────────────────
 
 services:
 
@@ -18,15 +21,12 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Прописать вручную после деплоя фронтенда:
       - key: MINI_APP_URL
-        fromService:
-          name: gamearena-frontend
-          type: web
-          property: host
-          envVarKey: MINI_APP_URL
+        sync: false
 
   # ══════════════════════════════════════════════════════════
-  # 2. FRONTEND — React + Vite (Static Site)
+  # 2. FRONTEND — React + Vite (Static Site, не засыпает)
   # ══════════════════════════════════════════════════════════
   - type: web
     name: gamearena-frontend
@@ -41,21 +41,14 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      # Прописать вручную: URL бэкенда (https://gamearena-backend.onrender.com)
       - key: VITE_API_URL
-        fromService:
-          name: gamearena-backend
-          type: web
-          property: host
-          envVarKey: VITE_API_URL
+        sync: false
       - key: VITE_SOCKET_URL
-        fromService:
-          name: gamearena-backend
-          type: web
-          property: host
-          envVarKey: VITE_SOCKET_URL
+        sync: false
 
   # ══════════════════════════════════════════════════════════
-  # 3. BOT — Python (Background Worker)
+  # 3. BOT — Python Background Worker (НЕ веб-сервис!)
   # ══════════════════════════════════════════════════════════
   - type: worker
     name: gamearena-bot
@@ -66,24 +59,14 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
     envVars:
-      # ⬇ ЕДИНСТВЕННАЯ переменная которую нужно вписать вручную:
+      # ОБЯЗАТЕЛЬНО вписать вручную:
       - key: BOT_TOKEN
         sync: false
-      # Всё остальное заполняется автоматически:
+      # Прописать вручную: URL фронтенда
       - key: MINI_APP_URL
-        fromService:
-          name: gamearena-frontend
-          type: web
-          property: host
-          envVarKey: MINI_APP_URL
+        sync: false
+      # Прописать вручную: URL бэкенда (https://gamearena-backend.onrender.com)
       - key: API_URL
-        fromService:
-          name: gamearena-backend
-          type: web
-          property: host
-          envVarKey: API_URL
+        sync: false
       - key: KEEPALIVE_INTERVAL
         value: "600"
-      # Явно указываем Python 3.11 тремя способами для надёжности:
-      - key: PYTHON_VERSION
-        value: "3.11"
